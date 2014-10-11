@@ -8,7 +8,7 @@ import datetime
 from flask import Flask, session, redirect, url_for, request,render_template, flash
 app = Flask(__name__)
 client = MongoClient('localhost',27017)
-db = client.pennapps
+db = client.codeforgood
 APP_SECRET_KEY = 'codeforgood'
 
 
@@ -19,7 +19,36 @@ def make_password_hash(username, password, salt):
     h = hashlib.sha256(username + password + salt).hexdigest()
     return '%s|%s' %(h, salt)
 
+'''
+	process users
+'''
+@app.route('/home',methods=['POST'])
+def process_homepage():
+	#fetch the user
+	if request.method=='POST':
+		#update the question into the file/database
+		pass
+	else:
+		username = session['username']
+		user_info=db.user.find_one({"username":username})
+		#
+		topics=user_info.topics
+		#topics=['lily','rose','jasmine']
+		#fetch the topics from the mongoDB databasef
+		feed_text=[]
 
+		for topic in topicsList:
+			topicsList=db.plants.find({"topic_name":topic})
+			feed_text.append(topicsList.text)
+
+		#feed_text
+		#["Question ","Question","Question"]
+
+		return render_template('home.htm',feed_text=feed_text)
+		#display the records to the web page
+		#Retrive the recirds fgrom the databse
+		#store into to a list
+		#diasplay them back to the front page
 
 @app.route('/login',methods=['POST'])
 def doLogin():
@@ -27,6 +56,7 @@ def doLogin():
 	   # return render_template('main.htm')
 	username=request.form['login_username']
 	password=request.form['login_password']
+	session['username'] = username
 	print username
 	print password
 	#check if the username is correct
@@ -53,17 +83,13 @@ def createAccount():
 		#retreiving the user info
 		username=request.form['username']
 		password=request.form['password']
-		phone=request.form['phone']
-		print username
-		print password
-		print phone
+		
 		#
 		hashPassword=make_password_hash(username, password, make_random_salt(5))
 		#creating json data
 		userAccount={
 				"username":username,
-				"password":password,
-				"phone":phone
+				"password":password
 			}
 		print userAccount
 		#inserting into the MongoDB database, user collection
